@@ -1,0 +1,11 @@
+@ServerApp_HostAddress = http://localhost:5123
+
+GET {{ServerApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{ServerApp_HostAddress}}/api/productlist
+Accept: application/json
+
+###

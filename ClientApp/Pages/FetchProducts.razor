@@ -1,0 +1,59 @@
+@page "/fetchproducts"
+@using ClientApp.Services
+@inject ProductCatalogService ProductCatalogService
+
+<h3>Product List</h3>
+
+@if (isLoading)
+{
+    <p>Loading products...</p>
+}
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <p class="text-danger">@errorMessage</p>
+}
+else if (products.Length == 0)
+{
+    <p>No products found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var product in products)
+        {
+            <li>@product.Name - $@product.Price - Category: @product.Category.Name</li>
+        }
+    </ul>
+}
+
+@code {
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
+    private const string TemporaryApiUnavailableMessage = "API temporariamente indisponivel. Tente novamente em alguns instantes.";
+
+    private ProductCatalogService.Product[] products = Array.Empty<ProductCatalogService.Product>();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // The service caches the catalog briefly to avoid duplicate API calls.
+            using var cts = new CancellationTokenSource(RequestTimeout);
+            products = await ProductCatalogService.GetProductsAsync(cts.Token);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            errorMessage = TemporaryApiUnavailableMessage;
+            products = Array.Empty<ProductCatalogService.Product>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
